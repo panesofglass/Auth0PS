@@ -78,9 +78,10 @@ function New-Auth0Client
     param (
         [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
         [Parameter(Mandatory=$true, Position=2)] [string] $Name,
-        [Parameter(Mandatory=$true, Position=3)] [string[]] $Callbacks,
-        [Parameter(Mandatory=$true, Position=4)] [string[]] $AllowedLogoutUrls,
-        [Parameter(Mandatory=$false)] [ValidateSet('native','spa','regular_web','non_interactive')] [string] $AppType
+        [Parameter(Mandatory=$false)] [ValidateSet('native','spa','regular_web','non_interactive')] [string] $AppType,
+        [Parameter(Mandatory=$false)] [string[]] $Callbacks,
+        [Parameter(Mandatory=$false)] [string[]] $AllowedLogoutUrls,
+        [Parameter(Mandatory=$false)] [switch] $UseAuth0ForSSO
     )
 
     $webClient = New-Object System.Net.WebClient
@@ -88,17 +89,16 @@ function New-Auth0Client
     $webClient.Headers.Add('Content-Type', 'application/json')
     $config = @{
         'name' = $Name
-        'callbacks' = $Callbacks
-        'allowed_logout_urls' = $AllowedLogoutUrls
-        'sso' = $true
-        'oidc_conformant' = $false
-        'jwt_configuration' = @{
-            'lifetime_in_seconds' = 2592000
-            'alg' = 'RS256'
-        }
+        'sso' = $UseAuth0ForSSO
     }
     if ($AppType) {
         $config.Add('app_type', $AppType)
+    }
+    if ($Callbacks) {
+        $config.Add('callbacks', $Callbacks)
+    }
+    if ($AllowedLogoutUrls) {
+        $config.Add('allowed_logout_urls', $AllowedLogoutUrls)
     }
     $json = $config | ConvertTo-Json
 
