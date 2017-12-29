@@ -89,7 +89,7 @@ function New-Auth0Client
     $webClient.Headers.Add('Content-Type', 'application/json')
     $config = @{
         'name' = $Name
-        'sso' = $UseAuth0ForSSO
+        'sso' = [boolean]$UseAuth0ForSSO
     }
     if ($AppType) {
         $config.Add('app_type', $AppType)
@@ -101,8 +101,11 @@ function New-Auth0Client
         $config.Add('allowed_logout_urls', $AllowedLogoutUrls)
     }
     $json = $config | ConvertTo-Json
+    Write-Host $json
 
-    return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/clients', $json) | ConvertFrom-Json
+    $url = 'https://' + $Context.Domain + '/api/v2/clients'
+    Write-Host $url
+    return $webClient.UploadString($url, $json) | ConvertFrom-Json
 }
 
 function Remove-Auth0Client
