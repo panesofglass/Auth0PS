@@ -101,11 +101,8 @@ function New-Auth0Client
         $config.Add('allowed_logout_urls', $AllowedLogoutUrls)
     }
     $json = $config | ConvertTo-Json
-    Write-Host $json
 
-    $url = 'https://' + $Context.Domain + '/api/v2/clients'
-    Write-Host $url
-    return $webClient.UploadString($url, $json) | ConvertFrom-Json
+    return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/clients', $json) | ConvertFrom-Json
 }
 
 function Remove-Auth0Client
