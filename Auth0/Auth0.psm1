@@ -81,7 +81,9 @@ function New-Auth0Client
         [Parameter(Mandatory=$false)] [ValidateSet('native','spa','regular_web','non_interactive')] [string] $AppType,
         [Parameter(Mandatory=$false)] [string[]] $Callbacks,
         [Parameter(Mandatory=$false)] [string[]] $AllowedLogoutUrls,
-        [Parameter(Mandatory=$false)] [switch] $UseAuth0ForSSO
+        [Parameter(Mandatory=$false)] [switch] $UseAuth0ForSSO,
+        [Parameter(Mandatory=$false)] [switch] $OidcConformant,
+        [Parameter(Mandatory=$false)] [Hashtable] $JwtConfiguration
     )
 
     $webClient = New-Object System.Net.WebClient
@@ -90,6 +92,7 @@ function New-Auth0Client
     $config = @{
         'name' = $Name
         'sso' = [boolean]$UseAuth0ForSSO
+        'oidc_conformant' = [boolean]$OidcConformant
     }
     if ($AppType) {
         $config.Add('app_type', $AppType)
@@ -99,6 +102,9 @@ function New-Auth0Client
     }
     if ($AllowedLogoutUrls) {
         $config.Add('allowed_logout_urls', $AllowedLogoutUrls)
+    }
+    if ($JwtConfiguration) {
+        $config.Add('jwt_configuration', $JwtConfiguration)
     }
     $json = $config | ConvertTo-Json
 
