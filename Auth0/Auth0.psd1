@@ -9,7 +9,7 @@
 @{
 
 # Script module or binary module file associated with this manifest.
-RootModule = 'Auth0'
+# RootModule = ''
 
 # Version number of this module.
 ModuleVersion = '1.5'
@@ -101,10 +101,10 @@ PrivateData = @{
         # Tags = @()
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://raw.githubusercontent.com/panesofglass/Auth0PS/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/panesofglass/Auth0PS'
 
         # A URL to an icon representing this module.
         # IconUri = ''
@@ -116,8 +116,8 @@ PrivateData = @{
         # ExternalModuleDependencies = ''
 
     } # End of PSData hashtable
-
-} # End of PrivateData hashtable
+    
+ } # End of PrivateData hashtable
 
 # HelpInfo URI of this module
 # HelpInfoURI = ''
