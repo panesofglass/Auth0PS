@@ -126,4 +126,146 @@ function Remove-Auth0Client
     return $webClient.UploadValues('https://' + $Context.Domain + '/api/v2/clients/' + $ClientId, 'DELETE', $content) | ConvertFrom-Json
 }
 
-Export-ModuleMember -Function Get-Auth0Context, Get-Auth0Clients, Get-Auth0Client, New-Auth0Client, Remove-Auth0Client
+function New-Auth0Connection
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
+        [Parameter(Mandatory=$true, Position=2)] [string] $Name,
+        [Parameter(Mandatory=$true, Position=3)] [string] $Strategy,
+        [Parameter(Mandatory=$false)] [switch] $DisableSignup
+    )
+
+    $webClient = New-Object System.Net.WebClient
+    $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+    $webClient.Headers.Add('Content-Type', 'application/json')
+
+    $config = @{
+        'name' = $Name
+        'strategy' = $Strategy
+    }
+
+    if ($DisableSignup) {
+        $config.Add('options',  @{ 'disable_signup' = [boolean]$DisableSignup })
+    }
+
+    $json = $config | ConvertTo-Json
+    return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/connections', $json) | ConvertFrom-Json
+}
+
+function Get-Auth0Connections
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context
+    )
+
+    $webClient = New-Object System.Net.WebClient
+    $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+    return $webClient.DownloadString('https://' + $Context.Domain + '/api/v2/connections') | ConvertFrom-Json
+}
+
+function Get-Auth0Connection
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
+        [Parameter(Mandatory=$true, Position=2, ValueFromPipelineByPropertyName)]
+        [Alias('id')] [string] $ConnectionId
+    )
+
+    $webClient = New-Object System.Net.WebClient
+    $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+    return $webClient.DownloadString('https://' + $Context.Domain + '/api/v2/connections/' + $ConnectionId) | ConvertFrom-Json
+}
+
+function Add-Auth0ClientToConnection
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
+        [Parameter(Mandatory=$true, Position=2)] [string] $ConnectionId,
+        [Parameter(Mandatory=$true, Position=3)] [string] $ClientId
+    )
+
+    $auth0Connection = Get-Auth0Connection $context $ConnectionId
+
+    if ($auth0Connection -eq $null) {
+        throw "Auth0 connection with $ConnectionId not found."
+    }
+
+    $auth0Client = Get-Auth0Client $context $ClientId
+
+    if ($auth0Client -eq $null) {
+        throw "Auth0 client with $ClientId not found."
+    }
+
+    $clientExists = $auth0Connection.enabled_clients -contains $ClientId
+
+    if (-not $clientExists) {
+        Write-Host Adding $auth0Client.name to $auth0Connection.name...
+
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+        $webClient.Headers.Add('Content-Type', 'application/json')
+        
+        $new_enabled_clients = $auth0Connection.enabled_clients + $ClientId
+        
+        $config = @{
+            'enabled_clients' = $new_enabled_clients
+        }
+
+        $json = $config | ConvertTo-Json
+        return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/connections/' + $ConnectionId, 'PATCH', $json) | ConvertFrom-Json
+    } else {
+        Write-Host $auth0Client.name already exists "in" $auth0Connection.name
+    }
+}
+
+function Remove-Auth0ClientFromConnection
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
+        [Parameter(Mandatory=$true, Position=2)] [string] $ConnectionId,
+        [Parameter(Mandatory=$true, Position=3)] [string] $ClientId
+    )
+
+    $auth0Connection = Get-Auth0Connection $context $ConnectionId
+
+    if ($auth0Connection -eq $null) {
+        throw "Auth0 connection with $ConnectionId not found."
+    }
+
+    $auth0Client = Get-Auth0Client $context $ClientId
+
+    if ($auth0Client -eq $null) {
+        throw "Auth0 client with $ClientId not found."
+    }
+
+    $clientExists = $auth0Connection.enabled_clients -contains $ClientId
+
+    if (-not $clientExists) {
+        Write-Host $auth0Client.name does not exists "in" $auth0Connection.name
+    } else {
+        Write-Host Removing $auth0Client.name from $auth0Connection.name...
+
+        $webClient = New-Object System.Net.WebClient
+        $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+        $webClient.Headers.Add('Content-Type', 'application/json')
+
+        $new_enabled_clients = New-Object System.Collections.ArrayList
+        ($auth0Connection.enabled_clients) | ? { $_ -ne $ClientId } | % { $new_enabled_clients.Add($_) }
+
+        $config = @{
+            'enabled_clients' = $new_enabled_clients
+        }   
+
+        $json = $config | ConvertTo-Json
+        return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/connections/' + $ConnectionId, 'PATCH', $json) | ConvertFrom-Json
+    }
+}
+
+
+Export-ModuleMember -Function Get-Auth0Context, Get-Auth0Clients, Get-Auth0Client, New-Auth0Client, Remove-Auth0Client,
+    New-Auth0Connection, Get-Auth0Connections, Get-Auth0Connection, Add-Auth0ClientToConnection, Remove-Auth0ClientFromConnection
