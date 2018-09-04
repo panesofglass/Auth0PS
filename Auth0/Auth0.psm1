@@ -153,6 +153,21 @@ function New-Auth0Connection
     return $webClient.UploadString('https://' + $Context.Domain + '/api/v2/connections', $json) | ConvertFrom-Json
 }
 
+function Remove-Auth0Connection
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory=$true, Position=1)] [Auth0Context] $Context,
+        [Parameter(Mandatory=$true, Position=2, ValueFromPipelineByPropertyName)]
+        [Alias('id')] [string] $ConnectionId
+    )
+
+    $webClient = New-Object System.Net.WebClient
+    $webClient.Headers.Add('Authorization', $Context.Token.token_type + ' ' + $Context.Token.access_token)
+    $content = New-Object System.Collections.Specialized.NameValueCollection
+    return $webClient.UploadValues('https://' + $Context.Domain + '/api/v2/connections/' + $ConnectionId, 'DELETE', $content) | ConvertFrom-Json
+}
+
 function Get-Auth0Connections
 {
     [CmdletBinding()]
@@ -268,4 +283,4 @@ function Remove-Auth0ClientFromConnection
 
 
 Export-ModuleMember -Function Get-Auth0Context, Get-Auth0Clients, Get-Auth0Client, New-Auth0Client, Remove-Auth0Client,
-    New-Auth0Connection, Get-Auth0Connections, Get-Auth0Connection, Add-Auth0ClientToConnection, Remove-Auth0ClientFromConnection
+    New-Auth0Connection, Remove-Auth0Connection, Get-Auth0Connections, Get-Auth0Connection, Add-Auth0ClientToConnection, Remove-Auth0ClientFromConnection
