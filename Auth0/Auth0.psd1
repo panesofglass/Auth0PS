@@ -12,7 +12,7 @@
 RootModule = 'Auth0'
 
 # Version number of this module.
-ModuleVersion = '1.5.1'
+ModuleVersion = '1.5.2'
 
 # Supported PSEditions
 # CompatiblePSEditions = @()
@@ -72,7 +72,8 @@ PowerShellVersion = '5.0'
 FunctionsToExport = 'Get-Auth0Context', 'Get-Auth0Clients', 'Get-Auth0Client', 
                'New-Auth0Client', 'Remove-Auth0Client', 'New-Auth0Connection', 
                'Get-Auth0Connections', 'Get-Auth0Connection', 
-               'Add-Auth0ClientToConnection', 'Remove-Auth0ClientFromConnection'
+               'Add-Auth0ClientToConnection', 'Remove-Auth0ClientFromConnection',
+               'Remove-Auth0Connection'
 
 # Cmdlets to export from this module, for best performance, do not use wildcards and do not delete the entry, use an empty array if there are no cmdlets to export.
 CmdletsToExport = @()
